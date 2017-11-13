@@ -1,4 +1,8 @@
+
+
 > Written by Russell Gu
+
+[TOC]
 
 # Intro to Python
 
@@ -45,10 +49,10 @@ Assignment in this case is also simple.
 
 ```python
 top_delinq = sqlContext.sql('''
-select * from cstonedb3.cfe_loan_performance t1
-where t1.cstone_feed_key = ''' 
-+ str(max_feed_key.collect()[0][0]) + 
-''' and t1.loan_sta IN ('30D', '60D', 'NAC') and t1.end_bal_am >= 200000'''
+select * from test_table t1
+where t1.trans_dt = ''' 
++ str(trans_dt.collect()[0][0]) + 
+''' and t1.states IN ('NY', 'NJ', 'MA') and t1.trans_amt >= 200000'''
 )
 ```
 
@@ -70,8 +74,6 @@ where t1.cstone_feed_key = '''
 ## List
 
 List in Python is **mutable** as oppose to numpy arrays. This might cause unintended behavior or errors.
-
-
 
 Print items:
 ```python
@@ -162,7 +164,7 @@ df['gender'] = df['gender'].astype('category', categories=['Male', 'Female'])
 #### Converting column to categorical variable using `pd.Categorical`
 
 ```python
-today_report['loan_sta'] = pd.Categorical(today_report['loan_sta'], ordered=True, categories=["CUR", "30A", "30D", "60D", "NAC", "WOF"])
+titanic['class'] = pd.Categorical(titanic['class'], ordered=True, categories=["First Class", "Second Class", "Nornaml Class"])
 ```
 
 # NumPy
@@ -179,42 +181,63 @@ today_report['loan_sta'] = pd.Categorical(today_report['loan_sta'], ordered=True
 array([1,2,3,4])
 ```
 
-## Pandas
+# Pandas
 
-### Pandas Data Structure
+## Pandas Data Structure
 
 There are two basic types of Pandas data structure: DataFrame and DataSeries
 
-#### Dataframe
+### Dataframe
 
-###### Object Information
+> *Tips*
+> 
+> `.shape()` gives the dimension of the dataframe.
+> `.columns` gives the column names
 
-`.shape()` gives the dimension of the dataframe.
-`.columns` gives the column names
-
-###### Slicing/select data
+#### Slicing/select data
 
 By column names
 ```python
 df.loc[:, ['A', 'B']]
 ```
 
-###### Subset
+#### Subset
 
-
-#### DataSeries
-
-### File I/O
-
-#### Importing Data
-
-##### Importing CSV file
+Subsetting data and conditional assignment can be safely done by using `.loc()`. Say that we want to create a variable `score` and assigned everyone in the first class a score of 5.
 
 ```python
-df = pd.read_csv('titanic.csv', dtype={'passenger_id':str}) # forcing data to be str
+titanic.loc[titanic['class'] == 'First Class', "score"] = 5
 ```
 
-##### Importing CSV file as dictionary:
+### Series
+
+#### `.isin()`
+
+`.isin()` will return Boolean on a Pandas series when giving an array.
+
+```python
+
+```
+
+## Pandas File I/O
+
+### Importing Data
+
+#### Importing CSV file
+
+`dtype`:  force datatype when importing
+`usecols`: specify columns to import
+
+```python
+df = pd.read_csv('titanic.csv', 
+			# forcing data to be str
+			dtype={'passenger_id':str}, 
+			# only import these columns
+			usecols = ['passenger_id', 'nationality', 'price']) 
+```
+
+
+#### Importing CSV file as dictionary:
 
 ```python
 import csv
@@ -229,7 +252,7 @@ for row in reader:
     jsonfile.write('\n')
 ```
 
-##### Importing Fixed Width file
+#### Importing Fixed Width file
 
 Importing with fixed width files. [Documentation](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_fwf.html)
 
@@ -245,13 +268,13 @@ df = pd.read_fwf('data/public_database/FedACHdir.txt',
 `names` passes a array of names as column headers.
 `converters` acts as `dtype` and preserve the data type of a field.
 
-##### Importing csv as JSON
+#### Importing csv as JSON
 
 https://overlaid.net/2016/02/04/convert-a-csv-to-a-dictionary-in-python/
 
-#### Exporting
+### Exporting
 
-##### CSV
+#### to CSV
 
 Dataframe objects have `.to_csv` method ([Documentation](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.to_csv.html)). By default, the method will preserve index (row names) when exporting. Setting `index = False` will take care of this problem.
 
@@ -259,7 +282,7 @@ Dataframe objects have `.to_csv` method ([Documentation](https://pandas.pydata.o
 df.to_csv('file.csv', index = False)
 ```
 
-##### JSON
+#### to JSON
 
 Write to JSON
 
@@ -291,9 +314,9 @@ f.close()
 
 https://stackoverflow.com/questions/10373247/how-do-i-write-a-python-dictionary-to-a-csv-file
 
-### Basic Pandas Methods & Functions
+## Basic Pandas Methods & Functions
 
-#### Value Assignment
+### Value Assignment
 
 Assign the same value to the entire column.
 
@@ -301,7 +324,7 @@ Assign the same value to the entire column.
 df['A'] = 1
 ```
 
-##### Conditional value assignment
+#### Conditional value assignment
 
 This is the equivalent of `ifelse` in R. It is also row rise operation.
 
@@ -310,7 +333,7 @@ import numpy as np
 q2['match_type'] = np.where(q2['DDA'].isnull(), 'No DDA', np.where(q2['DDA'].notnull() & q2['customer_name'].isnull(), 'No match', 'Match'))
 ```
 
-#### Column names
+### Column names
 
 Below code will change the column name.
 
@@ -324,27 +347,27 @@ You can also define the column names altogether.
 df.columns = ['a', 'b']
 ```
 
-#### Unique
+### Unique
 
 ```python
 import pandas as pd
 df['columnname'].unique
 ```
 
-#### Sort
+### Sort
 
 ```python
 import pandas as pd
 DataFrame.sort_values(by, axis=0, ascending=True, inplace=False, kind='quicksort', na_position='last')
 ```
 
-#### Join
+### Join
 
 ```python
 pd.merge(q2, frb_routing_number, left_on = 'DDA', right_on = 'routing_number', how = 'left')
 ```
 
-#### Append
+### Append
 
 `append` is a dataframe object method. It allows another object to be appended to the desired object.
 
@@ -354,26 +377,26 @@ p = p1.append(p2).append(p3)
 
 Different from `bind_rows` in R, the column names must be the same, or append will force new column to be created.
 
-#### Rename
+### Rename
 
 ```python
 df.rename(columns={"new_routing_number": "routing_number"})
 ```
 
-#### Duplicate
+### Duplicate
 
-##### Show Duplicate
+#### Show Duplicate
 ```python
 df.duplicated()
 ```
 
-##### Drop Duplicate
+#### Drop Duplicate
 
 ```python
 df.drop_duplicates()
 ```
 
-##### Long to wide table 
+#### Long to wide table 
 
 ```python
 df.pivot(index='patient', columns='obs', values='score')
@@ -381,7 +404,7 @@ df.pivot(index='patient', columns='obs', values='score')
 
 https://chrisalbon.com/python/pandas_long_to_wide.html
 
-### String
+## String
 
 Naive | Pandas
 -------- | ---
@@ -390,7 +413,7 @@ Naive | Pandas
 `()` is needed. See debug log.
 
 
-### Summarizing
+## Summarizing
 
 Below query will allow you to calculate the percentage of the total of the values in the column.
 
@@ -398,7 +421,7 @@ Below query will allow you to calculate the percentage of the total of the value
 titanic['fare_pct'] = df.fare / df.fare.sum()
 ```
 
-### Group
+## Group
 
 Group by in Pandas allows aggregation at the group level
 ```python
@@ -410,7 +433,7 @@ You can also group by at multiple levels by passing a list to group
 titanic.groupby(['gender', 'nationality', 'class']]).agg({'fare':'sum'})
 ```
 
-#### Slicing a group
+### Slicing a group
 
 After aggregating at multi-group level, you can slice the group while keeping the group structure.
 ```python
@@ -418,22 +441,22 @@ df_group = titanic.groupby(['gender', 'nationality', 'class']]).agg({'fare':'sum
 df_group.loc[((slice(None), slice(None), slice('First Class')),:]
 ```
 
-#### Reset Index
+### Reset Index
 
 `.reset_index()` will break the multi-index groups of data frame. You essentially have a long table with each multi-index group as a record.
 ```python
 df_group.reset_index()
 ```
 
-#### Tabulate Data
+### Tabulate Data
 
-##### Count by group
+#### Count by group
 
 ```python
 port_2016q1.groupby('wo_ind_latest')[['contract_id']].count()
 ```
 
-### Query
+## Query
 
 This is a feature similar to `select` in `dplyr` or `where` clause in SQL.
 
@@ -442,7 +465,7 @@ fills.query('Symbol=="BUD US"')
 ```
 
 
-#### Local Variables
+### Local Variables
 
 When you refer to a local variable in query, you have explicitly refer it as an variable. Query will be searching for the variable but will not be able for find it unless you use the `@` operator.
 
@@ -455,7 +478,7 @@ fills.query('Symbol==@my_symbol') # works
 [Explicitly refer to local variables](https://stackoverflow.com/questions/23974664/unable-to-query-a-local-variable-in-pandas-0-14-0)
 
 
-### Pivot Table
+## Pivot Table
 
 [Documentation here.](https://pandas.pydata.org/pandas-docs/stable/reshaping.html#reshaping-and-pivot-tables)
 
@@ -479,20 +502,21 @@ q["loan_status"] = q["loan_status"].astype("category")
 q["loan_status"].cat.set_categories(['CUR', '30A', '30D', '60D', 'NAC', 'WOF', 'CLS'],inplace=True)
 ```
 
-##### Margins
+#### Margins
 
-In order for `margins = True` to work. It is safer to include only the columns required for the pivot table.
+In order for `margins = True` to work. It is safer to include **only the columns required** for the pivot table.
 
 ```python
-(df.
-.loc[:, ['event_name', 'loan_sta', 'tot_ar_bal']] # include only the required columns
-.pivot_table(index = 'event_name', columns = 'loan_sta', aggfunc = {'tot_ar_bal':'sum'}, fill_value = 0, margins=True)
- .style
- .format({'tot_ar_bal': '${:,.2f}'})
+(
+	df.loc[:, ['nationality', 'class', 'price']] 
+	# include only the required columns
+	.pivot_table(index = 'nationality', columns = 'class', aggfunc = {'price':'sum'}, fill_value = 0, margins=True)
+	.style
+	.format({'tot_ar_bal': '${:,.2f}'})
 )
 ```
 
-#### Pivot Table functions
+### Pivot Table functions
 
 Count: `count`
 Sum: `sum`
@@ -503,14 +527,15 @@ Usage:
 q3.pivot_table(index = 'match_type', aggfunc = {'contract_nbr':lambda x: len(x.unique())})
 ```
 
-#### Style Pivot Table
+### Style Pivot Table
 
 `.style()` can be applied for dataframe. Further, `.format` can format any column with a given format.
 
 ```python
-(df
-.pivot_table(index = ['event_name', 'action_type'], aggfunc = {'id':'count', 'end_bal':'sum'}).style
- .format({'end_bal_am': '${:,.2f}'})
+(
+	df
+	.pivot_table(index = ['event_name', 'action_type'], aggfunc = {'id':'count', 'end_bal':'sum'}).style
+	.format({'end_bal_am': '${:,.2f}'})
 )
 ```
 
@@ -526,7 +551,7 @@ pivot.style.format('${:,.0f}')
 
 [Styling Pivot Table](https://pandas.pydata.org/pandas-docs/stable/style.html)
 
-### Piping
+## Piping
 
 Pipe allows chaining several method consecutively, to perform a series of operations, each based on the result of the last operation. Pandas authors [prefer this method over subclass](https://pandas.pydata.org/pandas-docs/stable/internals.html#subclassing-pandas-data-structures) because of its simplicity.
 
@@ -539,22 +564,22 @@ Piping allows the use of functions in a way similar to class method. For example
     )
 ```
 
-#### Using Chaining and Pivot table together
+### Using Chaining and Pivot table together
 
 ```
-(q.query('loan_status != "CLS"')				
- .sort_values('AR', ascending = False)
- .pivot_table(index = 'loan_status',
- columns = 'ageing_status', 
- aggfunc = {'contract_nbr':'count', 'AR':sum})
+(q.query('nationality!= "US"')				
+ .sort_values('price', ascending = False)
+ .pivot_table(index = 'nationality',
+ columns = 'class', 
+ aggfunc = {'guest_name':'count', 'price':sum})
 )
 ```
 
 Note that column is not necessary.
 
-### Time Series Data
+## Time Series Data
 
-#### Datetime 
+### Datetime 
 
 First day of the month:
 
@@ -563,19 +588,19 @@ ds.values.astype('datetime64[M]')
 ```
 [Stackoverflow Answer](https://stackoverflow.com/questions/45304531/extracting-the-first-day-of-month-of-a-datetime-type-column-in-pandas)
 
-#### Date Format
+### Date Format
 
 | format | Value |
 -------- | --------
-`%d`: two digits date
-`%m`: two digits month
-`%Y`: 
+`%d`| two digits date
+`%m`| two digits month
+`%Y`| four digit year
 
  
 
-### Data Tricks
+## Data Tricks
 
-#### Change Pandas display format to dollar
+### Change Pandas display format to dollar
 
 Below code will change the global setting and will turn all floats into '$' format.
 
@@ -600,7 +625,7 @@ print(df)
 [StackOverFlow](https://stackoverflow.com/questions/20937538/how-to-display-pandas-dataframe-of-floats-using-a-format-string-for-columns)
 
 
-#### Convert Pandas Series to DF
+### Convert Pandas Series to DF
 
 
 ```python
@@ -611,12 +636,12 @@ pd.Series(loan_type_dict).to_frame().reset_index().rename(columns= {'index':'loa
 
 
 
-#### Convert date to quarter
+### Convert date to quarter
 
 The below method has better performance and greater data consistency.
 
 ```python
-q["qtr"] = pd.to_datetime(q['amort_date'].values, format='%Y-%m').astype('period[Q]')
+q["qtr"] = pd.to_datetime(q['trans_dt'].values, format='%Y-%m').astype('period[Q]')
 ```
 
 ## PySpark
@@ -679,7 +704,7 @@ See below explanation:
 
 [How to Think Like a Computer Scientist with Python 3](http://openbookproject.net/thinkcs/python/english3e/index.html)
 
-## Appendix
+# Appendix
 
 ### Windows Python Setup Basics
 
